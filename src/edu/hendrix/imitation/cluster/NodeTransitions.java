@@ -79,6 +79,9 @@ public class NodeTransitions implements DeepCopyable<NodeTransitions>, BSOCListe
 		replaceFromTarget(target, replacement);
 	}
 	
+	// TODO: Line 87 had an assertion failure.
+	// Need to figure out why, and fix it.
+	// Or, drop the NodeTransitions stuff from this demo.
 	private void replaceToTarget(int target, int replacement) {
 		for (int i = 0; i < size(); i++) {
 			FixedSizeArray<Integer> row = transitions.get(i);

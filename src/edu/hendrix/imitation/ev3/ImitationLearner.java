@@ -50,8 +50,10 @@ public class ImitationLearner {
 	}
 	
 	public void control() throws IOException {
+		LCD.drawString("Setting up", 0, 0);
 		Video video = setupVideo();
 		timer.start();
+		LCD.drawString("Ready", 0, 0);
 		while (Button.ESCAPE.isUp()) {
 			video.grabFrame(frame);
 			AdaptedYUYVImage input = new AdaptedYUYVImage(frame, Constants.WIDTH, Constants.HEIGHT);
@@ -63,6 +65,7 @@ public class ImitationLearner {
 	}
 	
 	private void finish() {
+		Actions.stop();
 		LCD.drawString(String.format("%4.2f hz", timer.cyclesPerSecond()), 0, 3);
 		filename.ifPresent(name -> {
 			try {
@@ -79,11 +82,12 @@ public class ImitationLearner {
 	private void learnAndAct(Optional<Control> pushed, AdaptedYUYVImage input) {
 		if (isAutonomous) {
 			actions.get(bsoc.bestMatchFor(input)).run();
+		} else if (pushed.isPresent()) {
+			Control control = pushed.get();
+			bsoc.train(input, control);
+			actions.get(control).run();
 		} else {
-			pushed.ifPresent(control -> {
-				bsoc.train(input, control);
-				actions.get(control).run();
-			});
+			Actions.stop();
 		}
 	}
 	
