@@ -6,7 +6,6 @@ import java.util.TreeSet;
 import java.util.function.Function;
 
 import edu.hendrix.imitation.util.DeepCopyable;
-import edu.hendrix.imitation.util.Duple;
 import edu.hendrix.imitation.util.FixedSizeArray;
 import edu.hendrix.imitation.util.Util;
 
@@ -23,7 +22,6 @@ public class BoundedSelfOrgCluster<C extends Clusterable<C> & DeepCopyable<C>, I
 	private FixedSizeArray<Node<C>> nodes;
 	private ArrayList<TreeSet<Edge<C>>> nodes2edges;
 	private TreeSet<Edge<C>> edges;
-	private NodeTransitions transitions;
 	
 	// Alternative distance function
 	private DistanceFunc<C> dist;
@@ -51,7 +49,6 @@ public class BoundedSelfOrgCluster<C extends Clusterable<C> & DeepCopyable<C>, I
 			result.edges.add(edge.deepCopy());
 		}
 		result.nodes = this.nodes.deepCopy();
-		result.setupTransitions(this.transitions.deepCopy());
 		result.lastMatchingNode = this.lastMatchingNode;
 	}
 
@@ -68,14 +65,8 @@ public class BoundedSelfOrgCluster<C extends Clusterable<C> & DeepCopyable<C>, I
 		this.lastMatchingNode = Optional.empty();
 	}
 	
-	private void setupTransitions(NodeTransitions transitions) {
-		this.transitions = transitions;
-		this.addListener(transitions);
-	}
-	
 	private void setupAvailable(int maxNumNodes) {
 		this.nodes = FixedSizeArray.make(maxNumNodes + 1);
-		setupTransitions(new NodeTransitions(this.nodes.capacity()));
 		Util.assertState(size() == 0, "size() should be zero, but is " + size());
 	}
 	
@@ -93,9 +84,6 @@ public class BoundedSelfOrgCluster<C extends Clusterable<C> & DeepCopyable<C>, I
 		if (topLevel.size() > 2) {
 			rebuildEdges(topLevel.get(2));
 		}
-		setupTransitions(topLevel.size() > 3 
-				? new NodeTransitions(topLevel.get(3)) 
-				: new NodeTransitions(maxNumNodes()));
 	}
 	
 	@Override
@@ -115,8 +103,6 @@ public class BoundedSelfOrgCluster<C extends Clusterable<C> & DeepCopyable<C>, I
 			result.append(edge.toString());
 			result.append('}');
 		}
-		result.append("}\n{");
-		result.append(transitions.toString());
 		result.append("}");
 		return result.toString();
 	}
@@ -196,9 +182,6 @@ public class BoundedSelfOrgCluster<C extends Clusterable<C> & DeepCopyable<C>, I
 		}
 		Util.assertState(nodes.getHighestInUse() == nodes.size() - 1, "Not compact");
 		int match = getClosestMatchFor(example);
-		lastMatchingNode.ifPresent(lastMatch -> {
-			transitions.transition(lastMatch, match);
-		});
 		lastMatchingNode = Optional.of(match);
 		return match;
 	}
@@ -319,10 +302,6 @@ public class BoundedSelfOrgCluster<C extends Clusterable<C> & DeepCopyable<C>, I
 			result.add(n.getCluster());
 		}
 		return result;
-	}
-	
-	public ArrayList<Duple<Integer,Integer>> transitionCountsFor(int node) {
-		return transitions.countsFor(node);
 	}
 	
 	@Override
