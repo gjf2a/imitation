@@ -47,5 +47,7 @@ public interface Clusterer<C,I> {
 	
 	public int size();
 	
+	default public boolean isTrained() {return size() > 0;}
+	
 	public Collection<Integer> getClusterIds();
 }

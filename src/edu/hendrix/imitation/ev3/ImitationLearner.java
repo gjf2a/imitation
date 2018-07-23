@@ -23,6 +23,7 @@ public class ImitationLearner {
 	private boolean isAutonomous = false;
 	private byte[] frame;
 	private Optional<String> filename = Optional.empty();
+	private int autoCycles = 0, trainCycles = 0;
 	
 	private Video setupVideo() throws IOException {
 		Video wc = BrickFinder.getDefault().getVideo();
@@ -53,13 +54,14 @@ public class ImitationLearner {
 		LCD.drawString("Setting up", 0, 0);
 		Video video = setupVideo();
 		timer.start();
-		LCD.drawString("Ready", 0, 0);
+		LCD.drawString("Ready     ", 0, 0);
 		while (Button.ESCAPE.isUp()) {
 			video.grabFrame(frame);
 			AdaptedYUYVImage input = new AdaptedYUYVImage(frame, Constants.WIDTH, Constants.HEIGHT);
 			Optional<Control> pushed = checkButtons();
 			learnAndAct(pushed, input);
 			timer.bumpCycle();
+			if (isAutonomous) {autoCycles += 1;} else {trainCycles += 1;}
 		}
 		finish();
 	}
@@ -77,16 +79,27 @@ public class ImitationLearner {
 				LCD.drawString("Save failed", 0, 1);
 			}
 		});
+		LCD.drawString(String.format("Train: %d", trainCycles), 0, 4);
+		LCD.drawString(String.format("Auto:  %d", autoCycles), 0, 5);
+		while (Button.ESCAPE.isDown());
+		while (Button.ESCAPE.isUp());
 	}
 	
 	private void learnAndAct(Optional<Control> pushed, AdaptedYUYVImage input) {
-		if (isAutonomous) {
-			actions.get(bsoc.bestMatchFor(input)).run();
-		} else if (pushed.isPresent()) {
+		if (bsoc.isTrained()) {
+			Control chosen = bsoc.bestMatchFor(input);
+			LCD.drawString(String.format("Auto:  %s       ", chosen), 0, 1);
+			if (isAutonomous) {
+				LCD.drawString("                  ", 0, 2);
+				actions.get(chosen).run();
+			}
+		}
+		if (pushed.isPresent()) {
 			Control control = pushed.get();
+			LCD.drawString(String.format("Human: %s       ", control), 0, 2);
 			bsoc.train(input, control);
 			actions.get(control).run();
-		} else {
+		} else if (!isAutonomous) {
 			Actions.stop();
 		}
 	}
@@ -94,14 +107,31 @@ public class ImitationLearner {
 	private Optional<Control> checkButtons() {
 		Optional<Control> pushed = Optional.empty();
 		if (Button.ENTER.isDown()) {
-			isAutonomous = true;
+			Actions.stop();
+			while (Button.ENTER.isDown()) {}
+			isAutonomous = !isAutonomous;
+			if (isAutonomous) {
+				autoMsg();
+			} else {
+				trainMsg();
+			}
+			LCD.drawString("Auto      ", 0, 0);
 		} else {
 			pushed = findButton();
 			if (pushed.isPresent()) {
+				trainMsg();
 				isAutonomous = false;
 			}
 		}
 		return pushed;
+	}
+	
+	private void trainMsg() {
+		LCD.drawString("Train     ", 0, 0);
+	}
+
+	private void autoMsg() {
+		LCD.drawString("Auto      ", 0, 0);
 	}
 	
 	private Optional<Control> findButton() {

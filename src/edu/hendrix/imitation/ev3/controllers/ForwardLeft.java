@@ -8,9 +8,9 @@ import edu.hendrix.imitation.ev3.ImitationLearner;
 
 public class ForwardLeft {
 	public static void main(String[] args) throws IOException {
-		ImitationLearner learner = new ImitationLearner(Control.UP, 16, 8)
+		ImitationLearner learner = new ImitationLearner(Control.UP, 32, 8)
 				.action(Control.UP, Actions::forward)
-				.action(Control.LEFT, Actions::spinLeft)
+				.action(Control.LEFT, Actions::backLeft)
 				.filename("forwardLeft1.txt");
 		
 		learner.control();

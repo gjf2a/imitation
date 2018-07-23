@@ -25,6 +25,12 @@ public class Actions {
 		Motor.D.forward();
 	}
 	
+	public static void backLeft() {
+		spinSpeed();
+		Motor.A.backward();
+		Motor.D.stop();
+	}
+	
 	public static void spinRight() {
 		spinSpeed();
 		Motor.A.forward();
@@ -38,15 +44,15 @@ public class Actions {
 	}
 	
 	public static void veerLeft() {
-		Motor.A.setSpeed(80);
-		Motor.D.setSpeed(100);
+		Motor.A.setSpeed(160);
+		Motor.D.setSpeed(200);
 		Motor.A.forward(); 
 		Motor.D.forward();
 	}
 	
 	public static void veerRight() {
-		Motor.A.setSpeed(100);
-		Motor.D.setSpeed(80);
+		Motor.A.setSpeed(200);
+		Motor.D.setSpeed(160);
 		Motor.A.forward(); 
 		Motor.D.forward();
 	}

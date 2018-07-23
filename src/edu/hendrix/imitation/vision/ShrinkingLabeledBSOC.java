@@ -16,6 +16,10 @@ public class ShrinkingLabeledBSOC<E extends Enum<E>> {
 		this.shrink = shrink;
 	}
 	
+	public boolean isTrained() {
+		return bsoc.isTrained();
+	}
+	
 	public void train(AdaptedYUYVImage example, E label) {
 		bsoc.train(example, label);
 	}
